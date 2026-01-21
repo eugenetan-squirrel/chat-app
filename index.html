@@ -2,244 +2,202 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>Chat + Minecraft Launcher</title>
+    <title>Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
     <style>
-      body {background:#020617; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; font-family:system-ui,sans-serif;}
-      h3 {text-align:center; margin:6px 0 12px;}
+      body { background: #020617; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: system-ui, sans-serif;}
+      h3 { text-align: center; margin: 6px 0 10px; }
+      input { width: 100%; background: #020617; color: white; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+      button { width: 100%; background: linear-gradient(135deg,#38bdf8,#6366f1); color: black; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 8px;}
+      button.danger { background: linear-gradient(135deg,#fb7185,#ef4444); }
       
-      input {width:100%; background:#020617; color:white; border:1px solid #334155; border-radius:8px; padding:10px; margin-bottom:10px; box-sizing:border-box;}
-      input::placeholder {color:#64748b;}
-
-      button {width:100%; background:linear-gradient(135deg,#38bdf8,#6366f1); color:black; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:8px; transition:filter 0.2s;}
-      button:hover {filter:brightness(1.1); }
-      button.danger {background:linear-gradient(135deg,#fb7185,#ef4444);}
+      .error { color: #f87171; text-align: center; font-size: 13px; }
+      .info { color: #22c55e; text-align: center; font-size: 12px; margin-bottom: 6px; }
+      .message { max-width: 75%; padding: 8px 10px; margin: 6px 0; border-radius: 12px; line-height: 1.3; word-wrap: break-word; }
+      .message.me { margin-left: auto; background: #2563eb; color: white; border-bottom-right-radius: 4px; }
+      .message.other { margin-right: auto; background: #1e293b; }
+      .message.shout { background: #dc2626; color: white; margin: 10px auto; text-align: center; font-weight: bold; }
+      .user { font-size: 11px; opacity: 0.7; font-weight: bold; }
+      .time { font-size: 10px; opacity: 0.5; text-align: right; }
+      .date-divider { text-align: center; font-size: 12px; color: #facc15; margin: 10px 0; font-weight: bold; }
       
-      .card {display:flex; flex-direction:column; height:100%;}
-      .input-row {display:flex; gap:6px; margin-bottom:10px;}
-      .error {color:#f87171; text-align:center; font-size:13px; }
-      .info {color:#22c55e; text-align:center; font-size:12px; margin-bottom:8px;}
-      
-      #chat-widget {width:320px; height:520px; background:#0f172a; color:#e5e7eb; border-radius:14px; padding:14px; box-shadow:0 10px 30px rgba(0,0,0,.5); display:flex; flex-direction:column;}
-      #messages {flex:1; background:#020617; border-radius:10px; padding:8px; overflow-y:auto; margin-bottom:10px; font-size:13px;}
-      
+      #chat-widget { width: 420px; max-width: 95vw; height: 600px; background: #0f172a; color: #e5e7eb; border-radius: 14px; padding: 14px; display: flex; flex-direction: column;}
+      #messages { flex: 1; max-height: 400px; background: #020617; border-radius: 10px; padding: 8px; overflow-y: auto; margin-bottom: 10px; font-size: 13px; }
     </style>
-  </head> 
+  </head>
   <body>
-
     <div id="chat-widget">
-      <div id="loginDiv" class="card">
+      <div id="loginDiv">
         <h3>🔐 Login</h3>
         <input id="usernameInput" placeholder="Username">
-        <input id="passwordInput" maxlength="8" placeholder="Password">
+        <input id="passwordInput" type="password" placeholder="Password">
         <button id="loginBtn">Login</button>
         <p id="loginError" class="error"></p>
-    </div>
-
-    <div id="chatDiv" class="card" style="display:none;">
-      <h3>Group Chat</h3>
-      <div id="messages"></div>
-
-        <div class="input-row">
-          <input id="messageInput" placeholder="Type a message and press Enter">
-        </div>
-
-        <p id="loginInfo" class="info"></p>
-        <button id="mc">🎮 Launch Minecraft</button>
-        <button id="resetPwdBtn" class="danger">Reset Password</button>
-        <button id="resetChat" class="danger" style="display:none;">Clear Chat</button>
-        <button id="signOutBtn" class="danger">Sign Out</button>
       </div>
 
+      <div id="chatDiv" style="display:none; flex-direction:column;">
+        <h3>Group Chat</h3>
+        <div id="messages"></div>
+        <input id="messageInput" placeholder="Type a message or shout with /shout">
+        <p id="loginInfo" class="info"></p  >
+        <button id="mc">🎮 Launch   Minecraft</button >
+        <button id="signOutBtn" class="danger ">Sign Out</button>
+      </div>
     </div>
+
     <script>
-      firebase.initializeApp({
-        apiKey: "AIzaSyD9gD2PgytC59LjpsOc75y7LlZswGOWkQw",
-        authDomain: "chat-app-fa784.firebaseapp.com",
-        databaseURL: "https://chat-app-fa784-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "chat-app-fa784",
-        storageBucket: "chat-app-fa784.firebasestorage.app",
-        messagingSenderId: "307901353660",
-        appId: "1:307901353660:web:d225a52eb0c3de3488cab9"
-      });
+      firebase.initializeApp({apiKey:"AIzaSyD9gD2PgytC59LjpsOc75y7LlZswGOWkQw", databaseURL:"https://chat-app-fa784-default-rtdb.asia-southeast1.firebasedatabase.app"});
 
       const db = firebase.database();
 
-      let currentUser = localStorage.getItem("chatUser") || "";
-      let currentPassword = localStorage.getItem("chatPwd") || "";
-
       const loginDiv = document.getElementById("loginDiv");
       const chatDiv = document.getElementById("chatDiv");
-      const loginBtn = document.getElementById("loginBtn");
-      const passwordInput = document.getElementById("passwordInput");
-      const loginError = document.getElementById("loginError");
-      const loginInfo = document.getElementById("loginInfo");
       const messagesDiv = document.getElementById("messages");
       const input = document.getElementById("messageInput");
-      const mc = document.getElementById("mc");
-      const resetPwdBtn = document.getElementById("resetPwdBtn");
-      const signOutBtn = document.getElementById("signOutBtn");
-      const resetChatBtn = document.getElementById("resetChat");
+      const loginError = document.getElementById("loginError");
+      const loginInfo = document.getElementById("loginInfo");
       const usernameInput = document.getElementById("usernameInput");
+      const passwordInput = document.getElementById("passwordInput");
+      const loginBtn = document.getElementById("loginBtn");
+      const signOutBtn = document.getElementById("signOutBtn");
+      const mc = document.getElementById("mc");
 
-      let lastMsgDay = null;
+      let currentUser = "";
       let canSend = true;
+      let shoutCooldown = false;
+      let lastDate = "";
+      let mutedUsers = {};
 
-      async function login(username, pwd) {
-        loginError.textContent = "";
-        if (!username || !pwd) return loginError.textContent = "Enter username and password";
+      // --- DATE/TIME FORMAT ---
+      function formatDate(d){
+          const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+          return `${months[d.getMonth()]} ${d.getDate()} ${d.getFullYear()}`;
+      }
+      function formatTime(d){ return d.toTimeString().slice(0,5); }
 
-        try {
-          const snap = await db.ref("users/" + username).get();
-          if (!snap.exists()) {
-            loginError.textContent = "Username not found";
-            return;
+      // --- LOGIN ---
+      loginBtn.onclick = async () => {
+          loginError.textContent = "";
+          const u = usernameInput.value.trim();
+          const p = passwordInput.value.trim();
+          if(!u || !p){
+              loginError.textContent = "Username & password required";
+              return;
           }
-
-          if (snap.val().password !== pwd) {
-          loginError.textContent = "Incorrect password";
-          return;
+          try {
+              const snap = await db.ref("users/"+u).get();
+              if(!snap.exists() || snap.val().password !== p){
+                  loginError.textContent = "Invalid login";
+                  return;
+              }
+              currentUser = u;
+              loginDiv.style.display = "none";
+              chatDiv.style.display = "flex";
+              loginInfo.textContent = "Logged in as " + u;
+              attachMessages();
+          } catch(err){
+              console.error(err);
+              loginError.textContent = "Database error";
           }
-
-        currentUser = username;
-        currentPassword = pwd;
-        localStorage.setItem("chatUser", currentUser);
-        localStorage.setItem("chatPwd", currentPassword);
-
-        loginDiv.style.display = "none";
-        chatDiv.style.display = "flex";
-        loginInfo.textContent = `Logged in as ${currentUser}`;
-
-        resetChatBtn.style.display = currentUser === "Eugene" ? "block" : "none";
-      } catch (err) {
-        loginError.textContent = "Login failed. Try again.";
-        console.error(err);
-        }
-      }
-
-      loginBtn.onclick = () => login(usernameInput.value.trim(), passwordInput.value.trim());
-
-      input.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-          if (!currentUser) login(usernameInput.value.trim(), passwordInput.value.trim());
-          const msg = input.value.trim();
-          if(!msg) return;
-          if (!canSend) return loginInfo.textContent = "Chill man! Wait a sec.";
-          db.ref("chat").push({ user: currentUser, text: msg, timestamp: Date.now() });
-          input.value = "";
-          canSend = false;
-          setTimeout(() => { canSend = true; loginInfo.textContent = "";
-        }, 1000);
-        }
-      });
-
-      function formatDate(date) {
-        const options = { year: 'numeric', month: 'long' , day: 'numeric' };
-        return date.toLocaleDateString(undefined, options);
-      }
-
-      function formatTime(date) {
-        const h = date.getHours().toString().padStart(2, '0');
-        const m = date.getMinutes().toString().padStart(2, '0');
-        const s = date.getSeconds().toString().padStart(2, '0');
-        return `${h}.${m}.${s}`;
-      }
-
-      db.ref("chat").on("child_added", snap => {
-        const d = snap.val();
-        const msgDate = new Date(d.timestamp || Date.now());
-        const msgDay = formatDate(msgDate);
-
-        if (msgDay !== lastMsgDay) {
-          const dateDivider = document.createElement("p");
-          dateDivider.style.textAlign = "center";
-          dateDivider.style.color = "#94a3b8";
-          dateDivider.style.fontSize = "12px";
-          dateDivider.style.margin = "10px 0";
-          dateDivider.textContent = `--- ${msgDay} ---`;
-          messagesDiv.appendChild(dateDivider);
-          lastMsgDay = msgDay;
-        }
-        
-        const p = document.createElement("p");
-        p.innerHTML = `<b>${d.user} (${formatTime(msgDate)}):</b> ${d.text}`;
-        messagesDiv.appendChild(p);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        
-      });
-
-      resetPwdBtn.onclick = () => {
-        const oldCanSend = canSend;
-        canSend = false;
-
-        input.placeholder = "Input your new password...";
-        input.value = "";
-        input.focus();
-
-        const handlePwdEnter = async (e) => {
-          if (e.key !== "Enter") return;
-          const newPwd = input.value.trim();
-          if (!newPwd) return loginInfo.textContent = "Please enter a new password.";
-          if (newPwd.length < 8) return loginInfo.textContent = "Password must be at least 8 characters.";
-
-          await db.ref("users/" + currentUser + "/password").set(newPwd);
-          currentPassword = newPwd;
-          localStorage.setItem("chatPwd", newPwd);
-          passwordInput.value = newPwd;
-
-          input.value = "";
-          input.placeholder = "Type a message and press Enter";
-          loginInfo.textContent = `⚠️ New Password: ${newPwd}`;
-
-          canSend = oldCanSend;
-          input.removeEventListener("keydown", handlePwdEnter);
-
-          setTimeout(() => loginInfo.textContent = "", 5000);
-        };
-      input.addEventListener("keydown", handlePwdEnter);
       };
-      
+
+      // --- CHAT ---
+      function attachMessages(){
+          messagesDiv.innerHTML = "";
+          db.ref("chat").off();
+          lastDate = "";
+          db.ref("chat").on("child_added", snap => {
+              const d = snap.val();
+              if(mutedUsers[d.user]) return;
+              const date = new Date(d.timestamp);
+              const dateStr = formatDate(date);
+              if(dateStr !== lastDate){
+                  lastDate = dateStr;
+                  const divider = document.createElement("div");
+                  divider.className = "date-divider";
+                  divider.textContent = `-- ${dateStr} --`;
+                  messagesDiv.appendChild(divider);
+              }
+              const msg = document.createElement("div");
+              msg.classList.add("message");
+              if(d.shout){
+                  msg.classList.add("shout");
+                  msg.textContent = `${d.user}: ${d.text}`;
+              } else {
+                  msg.classList.add(d.user === currentUser ? "me" : "other");
+                  const u = document.createElement("div"); u.className="user"; u.textContent=d.user;
+                  const b = document.createElement("div"); b.textContent=d.text;
+                  const t = document.createElement("div"); t.className="time"; t.textContent=formatTime(date);
+                  msg.append(u,b,t);
+              }
+              messagesDiv.appendChild(msg);
+              messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          });
+      }
+
+      // --- SEND MESSAGE ---
+      input.addEventListener("keydown", async e => {
+          if(e.key!=="Enter" || !canSend) return;
+          const text = input.value.trim();
+          if(!text) return;
+
+          if(text.startsWith("/")){
+              const parts = text.slice(1).split(" ");
+              const cmd = parts.shift().toLowerCase();
+          
+              // --- ADMIN COMMANDS ---
+              if(currentUser==="Admin"){
+                  if(cmd==="clear"){ await db.ref("chat").remove(); messagesDiv.innerHTML=""; input.value=""; return; }
+                  if(cmd==="mute"){
+                      if(parts.length<3){ loginInfo.textContent="Invalid format"; input.value=""; return; }
+                      const target=parts[0], minutes=parts[1], msgText=parts.slice(2).join(" ");
+                      if(isNaN(minutes) || minutes<=0){ loginInfo.textContent="Invalid format"; input.value=""; return; }
+                      const snap=await db.ref("users/"+target).get();
+                      if(!snap.exists()){ loginInfo.textContent="Invalid user"; input.value=""; return; }
+                      mutedUsers[target]=true;
+                      db.ref("chat").push({ user:"System", text:`Muted ${target} for ${minutes} minutes: ${msgText}`, shout:true, timestamp:Date.now() });
+                      input.value=""; return;
+                  }
+                  if(cmd==="unmute"){
+                      const target=parts[0];
+                      if(!target){ loginInfo.textContent="Invalid format"; input.value=""; return; }
+                      delete mutedUsers[target];
+                      db.ref("chat").push({ user:"System", text:`Unmuted ${target}`, shout:true, timestamp:Date.now() });
+                      input.value=""; return;
+                  }
+              }
+            
+              if(cmd==="shout"){ 
+                  if(shoutCooldown) return;
+                  db.ref("chat").push({ user:currentUser, text:parts.join(" "), shout:true, timestamp:Date.now() });
+                  shoutCooldown=true; setTimeout(()=>shoutCooldown=false,15000);
+                  input.value=""; return;
+              }
+            
+              loginInfo.textContent="Invalid command"; input.value=""; return;
+          }
+        
+          db.ref("chat").push({ user:currentUser, text, shout:false, timestamp:Date.now() });
+          input.value=""; canSend=false; setTimeout(()=>canSend=true,800);
+      });
+
+      // --- SIGN OUT ---
       signOutBtn.onclick = () => {
-        localStorage.removeItem("chatUser");
-        localStorage.removeItem("chatPwd");
-
-        currentUser = "";
-        currentPassword = "";
-
-        chatDiv.style.display = "none";
-        loginDiv.style.display = "flex";
-
-        loginInfo.textContent = "";
-        messagesDiv.innerHTML = "";
+          db.ref("chat").off();
+          currentUser="";
+          chatDiv.style.display="none";
+          loginDiv.style.display="block";
       };
 
-      resetChatBtn.onclick = () => {
-        db.ref("chat").remove();
-        messagesDiv.innerHTML = "";
-        lastMsgDay = null;
-      };
-
+      // --- LAUNCH MINECRAFT ---
       mc.onclick = async () => {
-        try {
-          const html = await fetch(
-          "https://cdn.jsdelivr.net/gh/PlanetDogeCodes/Eagletcraft-1.12@main/source%20file/egc1-12.xml"
-          ).then(r => r.text());
-
-          const w = window.open("", "_blank");
-          if (!w) return loginInfo.textContent = "Failed to launch Minecraft. Please try again.";
-          setTimeout(() => { loginInfo.textContent = ""; }, 5000);
-          w.document.open();
+          const w = window.open();
+          if(!w) return;
+          const html = await fetch("https://cdn.jsdelivr.net/gh/PlanetDogeCodes/Eagletcraft-1.12@main/source%20file/egc1-12.xml").then(r=>r.text());
           w.document.write(html);
           w.document.close();
-
-        } catch {
-          loginInfo.textContent = "Failed to launch Minecraft. Please try again.";
-          setTimeout(() => { loginInfo.textContent = ""; }, 5000);
-        }
       };
     </script>
   </body>
